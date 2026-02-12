@@ -1,0 +1,34 @@
+🚨 CRITICAL: YOU MUST RUN THIS SQL FIX NOW
+==========================================
+
+Your save is timing out because Row Level Security (RLS) policies are blocking writes.
+
+IMMEDIATE ACTION REQUIRED:
+
+1. Open this link in a new tab:
+   https://supabase.com/dashboard/project/mtwvhcupvbvvwhjwjtuq/sql/new
+
+2. Copy the ENTIRE contents of DEFINITIVE_FIX.sql
+
+3. Paste into the SQL Editor
+
+4. Click RUN (or press Ctrl+Enter)
+
+5. Wait for "✅ RLS policies have been recreated"
+
+6. Return to your chatbot and try saving settings again
+
+WHY THIS IS NECESSARY:
+- You are logged in (user: eab7a0dd-e399-4822-8045-7e1579bd4d76)
+- Your session is valid
+- BUT the database RLS policies are rejecting your write request
+- The request hangs for 8 seconds then times out
+- This is a POLICY problem, not a code problem
+
+WHAT THE FIX DOES:
+- Drops broken RLS policies
+- Creates new working policies that allow authenticated users to write
+- Grants proper permissions
+
+AFTER RUNNING THE SQL:
+Your save should complete in < 1 second instead of timing out.

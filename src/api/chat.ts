@@ -1,49 +1,90 @@
-import axios from "axios";
-import { Message } from "../utils/types";
+import axios from 'axios';
+import { Message } from '../utils/types';
 
-const API_URL = import.meta.env.VITE_BACKEND_URL;
+const ENV_BACKEND_URL = import.meta.env.VITE_BACKEND_URL?.trim();
+const DEFAULT_ML_URL = 'https://mlmodel-3-8uo5.onrender.com/chat';
+
+function toChatEndpoint(base: string): string {
+  return base.endsWith('/chat') ? base : `${base}/chat`;
+}
+
+function getChatEndpoints(): string[] {
+  const endpoints = [toChatEndpoint(DEFAULT_ML_URL)];
+  if (ENV_BACKEND_URL) {
+    const envEndpoint = toChatEndpoint(ENV_BACKEND_URL);
+    if (!endpoints.includes(envEndpoint)) endpoints.push(envEndpoint);
+  }
+  return endpoints;
+}
 
 interface ChatResponse {
   reply?: string;
   response?: string;
   answer?: string;
+  message?: string;
+  text?: string;
+  emotion?: string;
+  turn?: number;
+  session_id?: string;
+  source?: string;
 }
 
 export async function streamChatResponse(messages: Message[]) {
-  const username = localStorage.getItem("mindpex_username");
+  const username = localStorage.getItem('mindpex_username');
 
   if (!username) {
-    throw new Error("No username found. Please sign in again.");
+    throw new Error('No username found. Please sign in again.');
   }
 
   const lastMessage = messages[messages.length - 1];
 
-  try {
-    const response = await axios.post(
-      `${API_URL}/chat`,
-      {
-        anon_userid: username,           // ✅ REQUIRED
-        text: lastMessage.content        // ✅ REQUIRED
-      },
-      {
-        headers: {
-          "Content-Type": "application/json",
+  let response;
+  let lastError: any;
+  const endpoints = getChatEndpoints();
+
+  for (const endpoint of endpoints) {
+    try {
+      response = await axios.post<ChatResponse>(
+        endpoint,
+        {
+          anon_userid: username,
+          text: lastMessage.content,
         },
-      }
-    );
+        {
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+      break;
+    } catch (err: any) {
+      lastError = err;
+    }
+  }
 
-    const data = response.data;
-
-    return {
-      textStream: data.reply || data.response || data.answer || ""
-    };
-
-  } catch (err: any) {
+  if (!response) {
     const message =
-      err?.response?.data?.detail ||
-      err?.message ||
-      "ML API failed";
-
+      lastError?.response?.data?.error ||
+      lastError?.response?.data?.detail ||
+      lastError?.message ||
+      'Failed to send chat message';
     throw new Error(message);
   }
+
+  const data = response.data;
+  const replyText =
+    data.reply ||
+    data.response ||
+    data.answer ||
+    data.message ||
+    data.text ||
+    '';
+
+  return {
+    textStream: replyText,
+    emotion: data.emotion,
+    turn: data.turn,
+  };
 }
+
+

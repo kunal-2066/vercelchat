@@ -1,0 +1,187 @@
+/* Custom animations for Mindpex Chatbot - Sanctuary Experience */
+
+/* Smooth scroll behavior */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Sanctuary Ambient Lighting Effects */
+.sanctuary-glow {
+  position: relative;
+}
+
+.sanctuary-glow::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle, rgba(217, 119, 6, 0.15) 0%, transparent 70%);
+  animation: breathingSlow 6s ease-in-out infinite;
+  pointer-events: none;
+  z-index: -1;
+}
+
+.message-glow {
+  box-shadow: 0 0 20px rgba(217, 119, 6, 0.2), 0 0 40px rgba(217, 119, 6, 0.1);
+}
+
+/* Warm fireplace gradient backgrounds */
+.bg-sanctuary {
+  background: linear-gradient(135deg, #451A03 0%, #292524 50%, #2E1065 100%);
+}
+
+.bg-sanctuary-day {
+  background: linear-gradient(135deg, #78350F 0%, #44403C 50%, #4C1D95 100%);
+}
+
+.bg-sanctuary-night {
+  background: linear-gradient(135deg, #1C1917 0%, #292524 50%, #2E1065 100%);
+}
+
+/* Candle-like avatar glow */
+.avatar-candle-glow {
+  box-shadow:
+    0 0 15px rgba(252, 211, 77, 0.4),
+    0 0 30px rgba(217, 119, 6, 0.3),
+    0 0 45px rgba(217, 119, 6, 0.2);
+  animation: candleFlicker 4s ease-in-out infinite;
+}
+
+/* Breathing effect for assistant presence */
+.breathing-presence {
+  animation: breathing 4s ease-in-out infinite;
+}
+
+/* Message bubble settling effect (wabi-sabi) */
+.message-settle {
+  animation: settle 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* Organic micro-jitter on hover */
+.hover-organic:hover {
+  animation: softJitter 0.3s ease-in-out;
+}
+
+/* Input box breathing when user stops typing */
+.input-breathing {
+  animation: inputPulse 1.5s ease-in-out;
+}
+
+/* Gradient text effect - warm amber */
+.gradient-text-warm {
+  background: linear-gradient(to right, #D97706, #FCD34D, #D97706);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: shimmer 3s linear infinite;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: 0% center;
+  }
+
+  100% {
+    background-position: 200% center;
+  }
+}
+
+/* Typing indicator with breathing dots */
+.typing-dot {
+  animation: typing 2s ease-in-out infinite;
+}
+
+.typing-dot:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.typing-dot:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+/* Sanctuary arrival animation */
+.sanctuary-entrance {
+  animation: sanctuaryArrive 2s ease-out;
+}
+
+/* Warm glow on button hover */
+.btn-warm-glow:hover {
+  box-shadow: 0 0 20px rgba(217, 119, 6, 0.4);
+  transition: all 0.3s ease;
+}
+
+/* Spring easing for message bubbles */
+.spring-in {
+  animation: fadeIn 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* Day/night transition */
+.theme-transition {
+  transition: background 1s ease-in-out, color 0.5s ease-in-out;
+}
+
+/* Ambient glow layer behind chat - irregular breathing */
+.ambient-layer {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 0;
+  background: radial-gradient(ellipse at center, rgba(217, 119, 6, 0.1) 0%, transparent 50%);
+  animation: breathingIrregular 8s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite;
+}
+
+/* MindPex Logo Sanctuary Reveal - Soft, Calm, Warm */
+/* Animation: All letters together, no stagger, feels like gentle presence entering */
+.logo-sanctuary-reveal {
+  opacity: 0;
+  transform: translateY(4px);
+  animation: logoReveal 0.9s ease-out forwards;
+}
+
+.logo-sanctuary-reveal span {
+  text-shadow: 0 0 0px rgba(255, 195, 85, 0);
+  animation: logoGlow 1.4s ease-out 0.2s forwards;
+}
+
+@keyframes logoReveal {
+  0% {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translateY(0px);
+  }
+}
+
+@keyframes logoGlow {
+  0% {
+    text-shadow: 0 0 0px rgba(255, 195, 85, 0);
+  }
+
+  100% {
+    text-shadow: 0 0 14px rgba(255, 195, 85, 0.25);
+  }
+}
+
+/* Tagline fade-in - appears after logo */
+.tagline-fade-in {
+  animation: taglineFade 0.8s ease-out 0.6s forwards;
+}
+
+@keyframes taglineFade {
+  0% {
+    opacity: 0;
+  }
+
+  100% {
+    opacity: 1;
+  }
+}

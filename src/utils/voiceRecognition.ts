@@ -47,6 +47,9 @@ interface SpeechRecognitionAlternative {
 export class VoiceRecognition {
   private recognition: SpeechRecognition | null = null;
   private isListening: boolean = false;
+  private isManualStop: boolean = false;
+  private readonly isMobile: boolean;
+  private readonly isSecureContext: boolean;
   private onResultCallback: ((text: string) => void) | null = null;
   private onEndCallback: (() => void) | null = null;
   private onErrorCallback: ((error: string) => void) | null = null;
@@ -56,6 +59,9 @@ export class VoiceRecognition {
   private SILENCE_THRESHOLD: number = 2000; // 2 seconds of silence triggers auto-stop
 
   constructor() {
+    this.isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+    this.isSecureContext = window.isSecureContext;
+
     // Check if browser supports speech recognition
     const SpeechRecognitionAPI =
       (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
@@ -74,9 +80,9 @@ export class VoiceRecognition {
   private setupRecognition() {
     if (!this.recognition) return;
 
-    // Continuous listening with auto-stop on silence
-    this.recognition.continuous = true;
-    this.recognition.interimResults = true;
+    // Mobile browsers are more stable with non-continuous, final-only recognition.
+    this.recognition.continuous = !this.isMobile;
+    this.recognition.interimResults = !this.isMobile;
     this.recognition.lang = 'en-US';
 
     // Handle results with silence detection
@@ -103,7 +109,23 @@ export class VoiceRecognition {
 
     // Handle end
     this.recognition.onend = () => {
+      if (this.silenceTimer) {
+        clearTimeout(this.silenceTimer);
+        this.silenceTimer = null;
+      }
+
+      const endedByManualStop = this.isManualStop;
+      this.isManualStop = false;
       this.isListening = false;
+
+      // On mobile/one-shot recognition, end may happen before silence timer.
+      if (!endedByManualStop) {
+        const textToSend = this.finalTranscript.trim();
+        if (this.onAutoStopCallback && textToSend) {
+          this.onAutoStopCallback(textToSend);
+        }
+      }
+
       if (this.onEndCallback) {
         this.onEndCallback();
       }
@@ -120,8 +142,14 @@ export class VoiceRecognition {
         errorMessage = 'Network error. Speech recognition requires an internet connection.';
       } else if (event.error === 'not-allowed') {
         errorMessage = 'Microphone permission denied. Please allow microphone access.';
+      } else if (event.error === 'service-not-allowed') {
+        errorMessage = 'Speech service is blocked on this browser/device.';
+      } else if (event.error === 'audio-capture') {
+        errorMessage = 'No microphone detected. Check your device microphone settings.';
       } else if (event.error === 'no-speech') {
         errorMessage = 'No speech detected. Please try again.';
+      } else if (event.error === 'aborted') {
+        errorMessage = 'Voice recording stopped. Please tap the mic again.';
       }
       
       if (this.onErrorCallback) {
@@ -168,17 +196,24 @@ export class VoiceRecognition {
   /**
    * Start listening for voice input with auto-stop
    */
-  start(
+  async start(
     onResult: (text: string) => void,
     onEnd?: () => void,
     onError?: (error: string) => void,
     onAutoStop?: (finalText: string) => void
-  ) {
+  ): Promise<boolean> {
     if (!this.recognition) {
       if (onError) {
         onError('Speech recognition not supported');
       }
-      return;
+      return false;
+    }
+
+    if (!this.isSecureContext) {
+      if (onError) {
+        onError('Microphone access requires a secure connection (HTTPS).');
+      }
+      return false;
     }
 
     this.onResultCallback = onResult;
@@ -186,18 +221,28 @@ export class VoiceRecognition {
     this.onErrorCallback = onError || null;
     this.onAutoStopCallback = onAutoStop || null;
     this.finalTranscript = '';
+    this.isManualStop = false;
 
     try {
+      // Warm up mic permission on mobile before starting recognition.
+      if (navigator.mediaDevices?.getUserMedia) {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        stream.getTracks().forEach((track) => track.stop());
+      }
+
       this.recognition.start();
       this.isListening = true;
       
       // Start silence detection timer
       this.resetSilenceTimer();
+      return true;
     } catch (error) {
       console.error('Error starting speech recognition:', error);
       if (onError) {
         onError('Failed to start recording');
       }
+      this.isListening = false;
+      return false;
     }
   }
 
@@ -211,6 +256,7 @@ export class VoiceRecognition {
     }
     
     if (this.recognition && this.isListening) {
+      this.isManualStop = true;
       this.recognition.stop();
       this.isListening = false;
     }

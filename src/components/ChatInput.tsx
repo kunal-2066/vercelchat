@@ -5,8 +5,9 @@ interface VoiceAssistant {
   isListening: boolean;
   isSpeaking: boolean;
   transcript: string;
+  error?: string | null;
   toggleVoiceMode: () => boolean;
-  startListening: (onAutoSend?: (text: string) => void) => void;
+  startListening: (onAutoSend?: (text: string) => void) => Promise<void>;
   stopListening: () => void;
   getFinalTranscript: () => string;
 }
@@ -68,7 +69,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage, isLoading, 
     }
   };
 
-  const handleVoiceClick = () => {
+  const handleVoiceClick = async () => {
     if (voiceAssistant.isListening) {
       // Stop listening and send message
       voiceAssistant.stopListening();
@@ -82,7 +83,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage, isLoading, 
         voiceAssistant.toggleVoiceMode();
       }
       // Start listening with auto-send on silence detection
-      voiceAssistant.startListening((text: string) => {
+      await voiceAssistant.startListening((text: string) => {
         if (text.trim()) {
           onSendMessage(text);
         }
@@ -228,6 +229,9 @@ export const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage, isLoading, 
             <p className="text-xs text-slate-500">
               Press Enter to send
             </p>
+          )}
+          {voiceAssistant.error && (
+            <p className="text-xs text-red-400 mt-1">{voiceAssistant.error}</p>
           )}
         </div>
 

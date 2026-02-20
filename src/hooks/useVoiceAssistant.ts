@@ -37,16 +37,17 @@ export function useVoiceAssistant() {
   /**
    * Start listening for voice input with auto-stop
    */
-  const startListening = useCallback((onAutoSend?: (text: string) => void) => {
+  const startListening = useCallback(async (onAutoSend?: (text: string) => void) => {
     if (!voiceRecognition.current.isSupported()) {
       setError('Voice input not supported in this browser');
+      setIsListening(false);
       return;
     }
 
     setError(null);
     setTranscript('');
 
-    voiceRecognition.current.start(
+    const started = await voiceRecognition.current.start(
       (text) => {
         setTranscript(text);
       },
@@ -66,7 +67,7 @@ export function useVoiceAssistant() {
       }
     );
 
-    setIsListening(true);
+    setIsListening(started);
   }, []);
 
   /**
@@ -75,6 +76,7 @@ export function useVoiceAssistant() {
   const stopListening = useCallback(() => {
     voiceRecognition.current.stop();
     setIsListening(false);
+    setError(null);
   }, []);
 
   /**

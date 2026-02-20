@@ -4,6 +4,10 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  --app-height: 100vh;
+}
+
 /* Base styles */
 body {
   margin: 0;
@@ -21,11 +25,39 @@ body {
   box-sizing: border-box;
 }
 
+html,
+body {
+  height: 100%;
+  width: 100%;
+}
+
 /* Ensure full height and hide scrollbar */
 #root {
-  height: 100vh;
-  width: 100vw;
+  height: var(--app-height);
+  min-height: var(--app-height);
+  width: 100%;
   overflow: hidden;
+}
+
+.app-shell {
+  height: 100%;
+  min-height: 100%;
+}
+
+/* Keep bottom chat controls above mobile browser UI / gesture bar */
+.mobile-safe-bottom {
+  padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 0.5rem);
+}
+
+/* Ensure final messages stay visible above sticky chat input on mobile */
+.chat-scroll-safe {
+  padding-bottom: 1.5rem;
+}
+
+@media (max-width: 767px) {
+  .chat-scroll-safe {
+    padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 7rem);
+  }
 }
 
 /* Hide scrollbar globally but keep scrolling functionality */

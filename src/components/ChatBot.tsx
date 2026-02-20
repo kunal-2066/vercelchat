@@ -101,7 +101,7 @@ export const ChatBot: React.FC<ChatBotProps> = ({ username }) => {
   };
 
   return (
-    <div className={`flex flex-col h-screen ${sanctuaryBg} theme-transition relative overflow-hidden`}>
+    <div className={`app-shell flex flex-col ${sanctuaryBg} theme-transition relative overflow-hidden`}>
       <div className="ambient-layer" />
 
       <div className="relative z-10">
@@ -117,7 +117,7 @@ export const ChatBot: React.FC<ChatBotProps> = ({ username }) => {
 
       <div
         ref={messagesContainerRef}
-        className="flex-1 overflow-y-auto px-4 py-6 pt-24 md:pt-6 relative z-10"
+        className="flex-1 overflow-y-auto px-4 py-6 pt-24 md:pt-6 relative z-10 chat-scroll-safe"
       >
         <div className="max-w-4xl mx-auto sanctuary-glow">
           {messages.length === 0 && !streamingMessage && (

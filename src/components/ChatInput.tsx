@@ -100,7 +100,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage, isLoading, 
   };
 
   return (
-    <div className="sticky bottom-0 pt-4 relative mobile-safe-bottom">
+    <div className="sticky bottom-0 pt-4 pb-2 relative">
       {/* Smooth gradient overlay - no harsh line */}
       <div className="absolute inset-0 bg-gradient-to-t from-mindpex-dark-warm via-mindpex-dark-warm/60 to-transparent pointer-events-none" />
 

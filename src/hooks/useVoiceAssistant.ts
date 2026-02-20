@@ -1,12 +1,10 @@
 /**
  * Voice Assistant Mode Hook
- * Combines speech recognition (STT) and speech synthesis (TTS)
- * for full voice conversation experience
+ * Handles speech recognition (STT) for voice input.
  */
 
 import { useState, useRef, useCallback } from 'react';
 import { VoiceRecognition } from '../utils/voiceRecognition';
-import { VoiceSynthesis } from '../utils/voiceSynthesis';
 
 export function useVoiceAssistant() {
   const [isVoiceMode, setIsVoiceMode] = useState(false);
@@ -16,7 +14,6 @@ export function useVoiceAssistant() {
   const [error, setError] = useState<string | null>(null);
 
   const voiceRecognition = useRef(new VoiceRecognition());
-  const voiceSynthesis = useRef(new VoiceSynthesis());
 
   /**
    * Toggle voice assistant mode on/off
@@ -80,27 +77,16 @@ export function useVoiceAssistant() {
   }, []);
 
   /**
-   * Speak text response
+   * Voice output disabled by product decision.
    */
-  const speak = useCallback((text: string) => {
-    setIsSpeaking(true);
-    voiceSynthesis.current.enable();
-    voiceSynthesis.current.speak(text);
-    
-    // Monitor speaking status
-    const checkSpeaking = setInterval(() => {
-      if (!voiceSynthesis.current.isSpeaking()) {
-        setIsSpeaking(false);
-        clearInterval(checkSpeaking);
-      }
-    }, 100);
+  const speak = useCallback((_text: string) => {
+    setIsSpeaking(false);
   }, []);
 
   /**
-   * Stop speaking
+   * Voice output disabled by product decision.
    */
   const stopSpeaking = useCallback(() => {
-    voiceSynthesis.current.stop();
     setIsSpeaking(false);
   }, []);
 

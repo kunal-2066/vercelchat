@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 
 interface VoiceSettingsProps {
   onVoiceChange: (voice: SpeechSynthesisVoice) => void;
@@ -11,24 +11,11 @@ export const VoiceSettings: React.FC<VoiceSettingsProps> = ({
   onRateChange, 
   onPitchChange 
 }) => {
-  const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([]);
+  const [voices] = useState<SpeechSynthesisVoice[]>([]);
   const [selectedVoice, setSelectedVoice] = useState<string>('');
   const [rate, setRate] = useState(0.9);
   const [pitch, setPitch] = useState(1.0);
   const [isOpen, setIsOpen] = useState(false);
-
-  useEffect(() => {
-    const loadVoices = () => {
-      const availableVoices = window.speechSynthesis.getVoices();
-      const englishVoices = availableVoices.filter(v => v.lang.startsWith('en'));
-      setVoices(englishVoices);
-    };
-
-    loadVoices();
-    if (window.speechSynthesis.onvoiceschanged !== undefined) {
-      window.speechSynthesis.onvoiceschanged = loadVoices;
-    }
-  }, []);
 
   const handleVoiceChange = (voiceName: string) => {
     setSelectedVoice(voiceName);
@@ -48,14 +35,7 @@ export const VoiceSettings: React.FC<VoiceSettingsProps> = ({
     onPitchChange(newPitch);
   };
 
-  const testVoice = () => {
-    const utterance = new SpeechSynthesisUtterance("Hi, this is how I sound. How do you like my voice?");
-    const voice = voices.find(v => v.name === selectedVoice);
-    if (voice) utterance.voice = voice;
-    utterance.rate = rate;
-    utterance.pitch = pitch;
-    window.speechSynthesis.speak(utterance);
-  };
+  const testVoice = () => {};
 
   if (!isOpen) {
     return (
@@ -137,9 +117,10 @@ export const VoiceSettings: React.FC<VoiceSettingsProps> = ({
       {/* Test Button */}
       <button
         onClick={testVoice}
+        disabled
         className="w-full bg-amber/20 hover:bg-amber/30 text-amber border border-amber/30 rounded-lg py-2 transition-all"
       >
-        Test Voice
+        Voice Output Disabled
       </button>
     </div>
   );

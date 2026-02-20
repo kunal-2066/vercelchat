@@ -99,8 +99,6 @@ export function useChat() {
         const emotionalContext = extractEmotionalTopic(userMessage.content);
         if (emotionalContext) await saveEmotionalMemory(emotionalContext);
 
-        // Speak if voice mode is on
-        if (voiceAssistant.isVoiceMode) voiceAssistant.speak(fullResponse);
       } catch (err: any) {
         console.error('❌ Chat error:', err.message);
 
@@ -215,7 +213,6 @@ export function useChat() {
         setStreamingMessage('');
         await saveMessageToDB(aiMessage);
 
-        if (voiceAssistant.isVoiceMode) voiceAssistant.speak(fullResponse);
       } catch (err: any) {
         console.error('Failed to regenerate after edit:', err);
         // Add error handling/restoration if needed
@@ -306,9 +303,6 @@ export function useChat() {
         });
 
         setStreamingMessage('');
-
-        // Speak if voice mode is on
-        if (voiceAssistant.isVoiceMode) voiceAssistant.speak(fullResponse);
 
       } catch (err: any) {
         console.error('Failed to regenerate:', err);

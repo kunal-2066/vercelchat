@@ -2,7 +2,7 @@ import axios from 'axios';
 import { Message } from '../utils/types';
 
 const ENV_BACKEND_URL = import.meta.env.VITE_BACKEND_URL?.trim();
-const DEFAULT_ML_URL = 'https://mlmodel-3-8uo5.onrender.com/chat';
+const DEFAULT_ML_URL = 'https://mlmodelmp.onrender.com/chat';
 
 function toChatEndpoint(base: string): string {
   return base.endsWith('/chat') ? base : `${base}/chat`;
@@ -86,5 +86,6 @@ export async function streamChatResponse(messages: Message[]) {
     turn: data.turn,
   };
 }
+
 
 

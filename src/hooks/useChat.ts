@@ -8,7 +8,7 @@ import {
 import { extractEmotionalTopic, saveEmotionalMemory } from '../utils/emotionalMemory';
 import { useVoiceAssistant } from './useVoiceAssistant';
 
-const ML_API_URL = "https://mlmodel-kvav.onrender.com/chat";
+const ML_API_URL = "https://mlmodelmp.onrender.com/chat";
 
 function generateId(): string {
   return `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
@@ -191,3 +191,4 @@ export function useChat() {
     },
   };
 }
+

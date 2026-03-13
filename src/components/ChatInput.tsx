@@ -17,14 +17,38 @@ interface ChatInputProps {
   isLoading: boolean;
   voiceAssistant: VoiceAssistant;
   disabled?: boolean;
+  message: string;
+  onMessageChange: (val: string) => void;
 }
 
-export const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage, isLoading, voiceAssistant, disabled = false }) => {
-  const [input, setInput] = useState('');
+export const ChatInput: React.FC<ChatInputProps> = ({
+  onSendMessage,
+  isLoading,
+  voiceAssistant,
+  disabled = false,
+  message,
+  onMessageChange
+}) => {
   const [isTyping, setIsTyping] = useState(false);
   const [showBreathing, setShowBreathing] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const typingTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Auto-focus on mount
+  useEffect(() => {
+    if (textareaRef.current) {
+      textareaRef.current.focus();
+    }
+  }, []);
+
+  // Place cursor at end and focus when message is set via chip
+  useEffect(() => {
+    if (message && textareaRef.current && document.activeElement !== textareaRef.current) {
+      textareaRef.current.focus();
+      const length = message.length;
+      textareaRef.current.setSelectionRange(length, length);
+    }
+  }, [message]);
 
   // Auto-resize textarea
   useEffect(() => {
@@ -32,20 +56,18 @@ export const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage, isLoading, 
       textareaRef.current.style.height = 'auto';
       textareaRef.current.style.height = `${Math.min(textareaRef.current.scrollHeight, 150)}px`;
     }
-  }, [input]);
+  }, [message]);
 
   // Detect typing pause for breathing effect
   useEffect(() => {
-    if (input) {
+    if (message) {
       setIsTyping(true);
       setShowBreathing(false);
 
-      // Clear existing timer
       if (typingTimerRef.current) {
         clearTimeout(typingTimerRef.current);
       }
 
-      // Set breathing effect after 1.5s of no typing
       typingTimerRef.current = setTimeout(() => {
         setIsTyping(false);
         setShowBreathing(true);
@@ -60,29 +82,31 @@ export const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage, isLoading, 
         clearTimeout(typingTimerRef.current);
       }
     };
-  }, [input]);
+  }, [message]);
 
   const handleSubmit = () => {
-    if (input.trim() && !isLoading) {
-      onSendMessage(input);
-      setInput('');
+    if (message.trim() && !isLoading) {
+      onSendMessage(message);
+      onMessageChange('');
+      setTimeout(() => {
+        if (textareaRef.current) {
+          textareaRef.current.focus();
+        }
+      }, 0);
     }
   };
 
   const handleVoiceClick = async () => {
     if (voiceAssistant.isListening) {
-      // Stop listening and send message
       voiceAssistant.stopListening();
       const finalText = voiceAssistant.getFinalTranscript();
       if (finalText.trim()) {
         onSendMessage(finalText);
       }
     } else {
-      // Enable voice mode if not already enabled
       if (!voiceAssistant.isVoiceMode) {
         voiceAssistant.toggleVoiceMode();
       }
-      // Start listening with auto-send on silence detection
       await voiceAssistant.startListening((text: string) => {
         if (text.trim()) {
           onSendMessage(text);
@@ -92,7 +116,6 @@ export const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage, isLoading, 
   };
 
   const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
-    // Submit on Enter (without Shift)
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       handleSubmit();
@@ -101,13 +124,12 @@ export const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage, isLoading, 
 
   return (
     <div className="sticky bottom-0 pt-4 pb-2 relative">
-      {/* Smooth gradient overlay - no harsh line */}
       <div className="absolute inset-0 bg-gradient-to-t from-mindpex-dark-warm via-mindpex-dark-warm/60 to-transparent pointer-events-none" />
 
-      <div className="max-w-4xl mx-auto px-4 relative z-10">
+      <div className="max-w-4xl mx-auto px-2 md:px-4 relative z-10">
         <div
-          className={`flex items-center gap-3 bg-mindpex-dark-gray rounded-xl p-3
-                      border-2 transition-all duration-300 shadow-lg ${isLoading || voiceAssistant.isSpeaking
+          className={`flex items-center gap-2 md:gap-3 bg-mindpex-dark-gray rounded-xl p-2 md:p-3
+                        border-2 transition-all duration-300 shadow-lg ${isLoading || voiceAssistant.isSpeaking
               ? 'border-slate-700'
               : voiceAssistant.isListening
                 ? 'border-amber animate-glow-pulse'
@@ -116,7 +138,6 @@ export const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage, isLoading, 
                   : 'border-transparent focus-within:border-amber/50'
             }`}
         >
-          {/* Text input or transcript display */}
           {voiceAssistant.isVoiceMode && (voiceAssistant.isListening || voiceAssistant.isSpeaking) ? (
             <div className="flex-1 text-slate-200 min-h-[40px] flex items-center">
               {voiceAssistant.isListening ? (
@@ -130,25 +151,24 @@ export const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage, isLoading, 
           ) : (
             <textarea
               ref={textareaRef}
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
+              value={message}
+              onChange={(e) => onMessageChange(e.target.value)}
               onKeyDown={handleKeyDown}
-              placeholder="How's work showing up for you today?"
+              placeholder="Describe the situation or thought you're working through…"
               disabled={isLoading || voiceAssistant.isSpeaking || disabled}
               rows={1}
               className="flex-1 bg-transparent text-slate-200 placeholder-slate-500
-                         resize-none outline-none max-h-[150px]
-                         disabled:opacity-50 disabled:cursor-not-allowed"
+                           resize-none outline-none max-h-[150px] text-sm md:text-base
+                           disabled:opacity-50 disabled:cursor-not-allowed"
               aria-label="Message input"
             />
           )}
 
-          {/* Voice button - starts recording immediately */}
           <button
             onClick={handleVoiceClick}
             disabled={isLoading || voiceAssistant.isSpeaking || disabled}
             className={`p-2.5 rounded-lg transition-all duration-200 flex-shrink-0
-                       ${voiceAssistant.isListening
+                         ${voiceAssistant.isListening
                 ? 'bg-gradient-to-r from-red-600 to-red-500 text-white animate-breathing shadow-lg shadow-red-500/50'
                 : isLoading || voiceAssistant.isSpeaking || disabled
                   ? 'bg-mindpex-dark-gray-light text-slate-600 cursor-not-allowed border border-slate-700'
@@ -167,76 +187,42 @@ export const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage, isLoading, 
             )}
           </button>
 
-          {/* Send button */}
           {!voiceAssistant.isListening && (
             <button
               onClick={handleSubmit}
-              disabled={!input.trim() || isLoading || disabled}
+              disabled={!message.trim() || isLoading || disabled}
               className={`px-5 py-2.5 rounded-lg font-semibold
-                         transition-all duration-200 flex-shrink-0
-                         ${!input.trim() || isLoading || disabled
-                  ? 'bg-mindpex-dark-gray-light text-slate-600 cursor-not-allowed border border-slate-700'
+                           transition-all duration-200 flex-shrink-0
+                           ${!message.trim() || isLoading || disabled
+                  ? 'bg-slate-800/40 text-slate-500 cursor-not-allowed border border-slate-700/50'
                   : 'bg-gradient-to-r from-amber to-amber-glow text-white btn-warm-glow animate-breathing shadow-lg'
                 }`}
               aria-label="Send message"
             >
               {isLoading ? (
-                <svg
-                  className="w-5 h-5 animate-spin"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                >
-                  <circle
-                    className="opacity-25"
-                    cx="12"
-                    cy="12"
-                    r="10"
-                    stroke="currentColor"
-                    strokeWidth="4"
-                  />
-                  <path
-                    className="opacity-75"
-                    fill="currentColor"
-                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                  />
+                <svg className="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                 </svg>
               ) : (
-                <svg
-                  className="w-5 h-5"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"
-                  />
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
                 </svg>
               )}
             </button>
           )}
         </div>
 
-        {/* Helper text */}
         <div className="mt-2 text-center">
           {voiceAssistant.isListening ? (
-            <p className="text-xs text-amber">
-              Recording... Auto-stops after 2 seconds of silence
-            </p>
+            <p className="text-xs text-amber">Recording... Tap button to stop</p>
           ) : (
-            <p className="text-xs text-slate-500">
-              Press Enter to send
-            </p>
+            <p className="text-xs text-slate-500">Press Enter to send</p>
           )}
           {voiceAssistant.error && (
             <p className="text-xs text-red-400 mt-1">{voiceAssistant.error}</p>
           )}
         </div>
-
-        {/* Phase 4: Anti-ChatGPT microcopy */}
-
       </div>
     </div>
   );

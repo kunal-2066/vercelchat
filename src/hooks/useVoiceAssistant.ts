@@ -21,13 +21,13 @@ export function useVoiceAssistant() {
   const toggleVoiceMode = useCallback(() => {
     const newMode = !isVoiceMode;
     setIsVoiceMode(newMode);
-    
+
     if (!newMode) {
       // Turning off - stop everything
       stopListening();
       stopSpeaking();
     }
-    
+
     return newMode;
   }, [isVoiceMode]);
 
@@ -54,13 +54,6 @@ export function useVoiceAssistant() {
       (errorMsg) => {
         setError(errorMsg);
         setIsListening(false);
-      },
-      (finalText) => {
-        // Auto-stop triggered by silence detection
-        setIsListening(false);
-        if (onAutoSend && finalText.trim()) {
-          onAutoSend(finalText);
-        }
       }
     );
 

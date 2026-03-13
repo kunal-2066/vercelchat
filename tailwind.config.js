@@ -24,12 +24,14 @@ export default {
       },
       animation: {
         'subtle-pulse': 'subtle-pulse 2s ease-in-out infinite',
+        'fade-in-simple': 'fadeInSimple 150ms ease-out forwards',
         'fade-in': 'fadeIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1)',
         'fade-in-slow': 'fadeInSlow 0.8s ease-out',
         'fade-in-gentle': 'fadeInGentle 1s ease-out',
         // New Motion Principles Animations
-        'fade-out': 'fade-out 240ms cubic-bezier(0.6, 0.05, 0.2, 0.9) forwards', // slight ease-in
-        'fade-in-rise': 'fade-in-rise 280ms cubic-bezier(0.2, 0.8, 0.2, 1) forwards',
+        'fade-out': 'fade-out 230ms cubic-bezier(0.6, 0.05, 0.2, 0.9) forwards',
+        'fade-out-fast': 'fade-out 150ms ease-out forwards',
+        'fade-in-rise': 'fade-in-rise 230ms cubic-bezier(0.2, 0.8, 0.2, 1) forwards',
         'fade-in-static': 'fade-in-static 350ms cubic-bezier(0.2, 0.8, 0.2, 1) forwards',
         'typing-dots': 'typing 2.5s ease-in-out infinite',
         'breathing': 'breathing 4s ease-in-out infinite',
@@ -55,6 +57,10 @@ export default {
             boxShadow: '0 25px 30px -5px rgba(181, 131, 66, 0.4)',
             transform: 'scale(1.02)',
           },
+        },
+        fadeInSimple: {
+          '0%': { opacity: '0' },
+          '100%': { opacity: '1' },
         },
         fadeIn: {
           '0%': { opacity: '0', transform: 'translateY(10px)' },

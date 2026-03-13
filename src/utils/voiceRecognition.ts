@@ -53,10 +53,7 @@ export class VoiceRecognition {
   private onResultCallback: ((text: string) => void) | null = null;
   private onEndCallback: (() => void) | null = null;
   private onErrorCallback: ((error: string) => void) | null = null;
-  private onAutoStopCallback: ((finalText: string) => void) | null = null;
-  private silenceTimer: ReturnType<typeof setTimeout> | null = null;
   private finalTranscript: string = '';
-  private SILENCE_THRESHOLD: number = 2000; // 2 seconds of silence triggers auto-stop
 
   constructor() {
     this.isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
@@ -75,20 +72,20 @@ export class VoiceRecognition {
   }
 
   /**
-   * Setup speech recognition with optimal settings and auto-stop
+   * Setup speech recognition with optimal settings for continuous recording
    */
   private setupRecognition() {
     if (!this.recognition) return;
 
-    // Mobile browsers are more stable with non-continuous, final-only recognition.
-    this.recognition.continuous = !this.isMobile;
-    this.recognition.interimResults = !this.isMobile;
+    // Enable continuous recording regardless of device
+    this.recognition.continuous = true;
+    this.recognition.interimResults = true;
     this.recognition.lang = 'en-US';
 
-    // Handle results with silence detection
+    // Handle results
     this.recognition.onresult = (event: SpeechRecognitionEvent) => {
       let interimTranscript = '';
-      
+
       for (let i = event.resultIndex; i < event.results.length; i++) {
         const transcript = event.results[i][0].transcript;
         if (event.results[i].isFinal) {
@@ -102,29 +99,12 @@ export class VoiceRecognition {
       if (this.onResultCallback) {
         this.onResultCallback(this.finalTranscript || interimTranscript);
       }
-
-      // Reset silence timer - restart auto-stop countdown
-      this.resetSilenceTimer();
     };
 
     // Handle end
     this.recognition.onend = () => {
-      if (this.silenceTimer) {
-        clearTimeout(this.silenceTimer);
-        this.silenceTimer = null;
-      }
-
-      const endedByManualStop = this.isManualStop;
       this.isManualStop = false;
       this.isListening = false;
-
-      // On mobile/one-shot recognition, end may happen before silence timer.
-      if (!endedByManualStop) {
-        const textToSend = this.finalTranscript.trim();
-        if (this.onAutoStopCallback && textToSend) {
-          this.onAutoStopCallback(textToSend);
-        }
-      }
 
       if (this.onEndCallback) {
         this.onEndCallback();
@@ -135,7 +115,7 @@ export class VoiceRecognition {
     this.recognition.onerror = (event: any) => {
       console.error('Speech recognition error:', event.error);
       this.isListening = false;
-      
+
       // Provide user-friendly error messages
       let errorMessage = event.error;
       if (event.error === 'network') {
@@ -151,7 +131,7 @@ export class VoiceRecognition {
       } else if (event.error === 'aborted') {
         errorMessage = 'Voice recording stopped. Please tap the mic again.';
       }
-      
+
       if (this.onErrorCallback) {
         this.onErrorCallback(errorMessage);
       }
@@ -159,48 +139,12 @@ export class VoiceRecognition {
   }
 
   /**
-   * Reset silence detection timer
-   */
-  private resetSilenceTimer() {
-    if (this.silenceTimer) {
-      clearTimeout(this.silenceTimer);
-    }
-
-    // Start new timer - auto-stop after silence threshold
-    this.silenceTimer = setTimeout(() => {
-      if (this.isListening && this.finalTranscript.trim()) {
-        // User stopped speaking - auto-stop and send
-        this.stopWithAutoSend();
-      }
-    }, this.SILENCE_THRESHOLD);
-  }
-
-  /**
-   * Stop and trigger auto-send callback
-   */
-  private stopWithAutoSend() {
-    if (this.silenceTimer) {
-      clearTimeout(this.silenceTimer);
-      this.silenceTimer = null;
-    }
-
-    const textToSend = this.finalTranscript.trim();
-    this.stop();
-
-    // Trigger auto-stop callback with final text
-    if (this.onAutoStopCallback && textToSend) {
-      this.onAutoStopCallback(textToSend);
-    }
-  }
-
-  /**
-   * Start listening for voice input with auto-stop
+   * Start listening for voice input
    */
   async start(
     onResult: (text: string) => void,
     onEnd?: () => void,
-    onError?: (error: string) => void,
-    onAutoStop?: (finalText: string) => void
+    onError?: (error: string) => void
   ): Promise<boolean> {
     if (!this.recognition) {
       if (onError) {
@@ -219,7 +163,6 @@ export class VoiceRecognition {
     this.onResultCallback = onResult;
     this.onEndCallback = onEnd || null;
     this.onErrorCallback = onError || null;
-    this.onAutoStopCallback = onAutoStop || null;
     this.finalTranscript = '';
     this.isManualStop = false;
 
@@ -232,9 +175,7 @@ export class VoiceRecognition {
 
       this.recognition.start();
       this.isListening = true;
-      
-      // Start silence detection timer
-      this.resetSilenceTimer();
+
       return true;
     } catch (error) {
       console.error('Error starting speech recognition:', error);
@@ -250,17 +191,12 @@ export class VoiceRecognition {
    * Stop listening
    */
   stop() {
-    if (this.silenceTimer) {
-      clearTimeout(this.silenceTimer);
-      this.silenceTimer = null;
-    }
-    
     if (this.recognition && this.isListening) {
       this.isManualStop = true;
       this.recognition.stop();
       this.isListening = false;
     }
-    
+
     this.finalTranscript = '';
   }
 

@@ -15,6 +15,24 @@ interface ChatBotProps {
   username: string | null;
 }
 
+const formatDateLabel = (date: Date) => {
+  const now = new Date();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const yesterday = new Date(today);
+  yesterday.setDate(yesterday.getDate() - 1);
+
+  const d = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+
+  if (d.getTime() === today.getTime()) return 'TODAY';
+  if (d.getTime() === yesterday.getTime()) return 'YESTERDAY';
+
+  return d.toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: d.getFullYear() !== now.getFullYear() ? 'numeric' : undefined
+  }).toUpperCase();
+};
+
 export const ChatBot: React.FC<ChatBotProps> = ({ username }) => {
   const {
     messages,
@@ -36,6 +54,8 @@ export const ChatBot: React.FC<ChatBotProps> = ({ username }) => {
   const [isSoundEnabled, setIsSoundEnabled] = useState(false);
   const [sanctuaryBg] = useState(getSanctuaryBackground());
   const [showSettings, setShowSettings] = useState(false);
+  const [isResetting, setIsResetting] = useState(false);
+  const [message, setMessage] = useState('');
 
   const displayName = username || '';
 
@@ -56,12 +76,20 @@ export const ChatBot: React.FC<ChatBotProps> = ({ username }) => {
     }
   }, [messages, streamingMessage]);
 
-  const handleClearChat = () => {
-    if (
-      messages.length > 0 &&
-      window.confirm('Clear this conversation?')
-    ) {
+  const handleClearChat = async () => {
+    if (messages.length === 0) return;
+
+    if (window.confirm('Start a fresh conversation?')) {
+      setIsResetting(true);
+      // Wait for fade out
+      await new Promise(resolve => setTimeout(resolve, 150));
+
       clearMessages();
+
+      // Reset after a tiny delay to ensure first msg mounts if any
+      setTimeout(() => {
+        setIsResetting(false);
+      }, 50);
     }
   };
 
@@ -75,22 +103,8 @@ export const ChatBot: React.FC<ChatBotProps> = ({ username }) => {
     sendMessage(message);
   };
 
-  const handleMoodSelect = async (mood: string) => {
-    // 1. Add User Mood
-    await addLocalMessage({
-      id: Date.now().toString(),
-      role: 'user',
-      content: mood,
-      timestamp: new Date()
-    });
-
-    // 2. Add AI Acknowledgement (Immediate)
-    await addLocalMessage({
-      id: (Date.now() + 1).toString(),
-      role: 'assistant',
-      content: "Got it. Want to say anything about that, or we can leave it there.",
-      timestamp: new Date()
-    });
+  const handleMoodSelect = (mood: string) => {
+    setMessage(mood);
   };
 
   const handleSignOut = () => {
@@ -117,25 +131,40 @@ export const ChatBot: React.FC<ChatBotProps> = ({ username }) => {
 
       <div
         ref={messagesContainerRef}
-        className="flex-1 overflow-y-auto px-4 py-6 pt-24 md:pt-6 relative z-10"
+        className={`flex-1 overflow-y-auto px-2 md:px-4 py-4 md:py-6 pt-20 md:pt-6 relative z-10 transition-opacity duration-150 ${isResetting ? 'opacity-0 animate-fade-out-fast' : 'opacity-100'}`}
       >
-        <div className="max-w-4xl mx-auto sanctuary-glow">
+        <div className={`max-w-4xl mx-auto sanctuary-glow ${!isResetting ? 'animate-fade-in-simple' : ''}`}>
           {messages.length === 0 && !streamingMessage && (
             <MoodChips onSelect={handleMoodSelect} />
           )}
 
-          {messages.map((message) => (
-            <MessageBubble
-              key={message.id}
-              message={message}
-              onEdit={editMessage}
-              onSwitchVersion={switchVersion}
-              onRegenerate={regenerateMessage}
-            />
-          ))}
+          {messages.map((message, index) => {
+            const prevMessage = index > 0 ? messages[index - 1] : null;
+            const showDivider = !prevMessage ||
+              new Date(message.timestamp).toDateString() !== new Date(prevMessage.timestamp).toDateString();
+
+            return (
+              <React.Fragment key={message.id}>
+                {showDivider && (
+                  <div className="flex flex-col items-center my-8 animate-fade-in-simple">
+                    <span className="text-[10px] font-bold tracking-[0.2em] text-slate-500 uppercase mb-2">
+                      {formatDateLabel(new Date(message.timestamp))}
+                    </span>
+                    <div className="w-full max-w-[200px] h-[1px] bg-slate-800" />
+                  </div>
+                )}
+                <MessageBubble
+                  message={message}
+                  onEdit={editMessage}
+                  onSwitchVersion={switchVersion}
+                  onRegenerate={regenerateMessage}
+                />
+              </React.Fragment>
+            );
+          })}
 
           {streamingMessage && (
-            <div className="flex justify-start mb-4 animate-fade-in">
+            <div className="flex justify-start mb-4 animate-fade-in-simple">
               <div className="max-w-[80%] bg-mindpex-dark-gray-light border border-slate-700/50 rounded-lg px-4 py-3 shadow-lg">
                 <StreamingText text={streamingMessage} />
               </div>
@@ -161,14 +190,14 @@ export const ChatBot: React.FC<ChatBotProps> = ({ username }) => {
         </div>
       </div>
 
-      {(messages.length > 0 || streamingMessage) && (
-        <ChatInput
-          onSendMessage={handleSendMessage}
-          isLoading={isLoading}
-          voiceAssistant={voiceAssistant}
-          disabled={false}
-        />
-      )}
+      <ChatInput
+        onSendMessage={handleSendMessage}
+        isLoading={isLoading}
+        voiceAssistant={voiceAssistant}
+        disabled={false}
+        message={message}
+        onMessageChange={setMessage}
+      />
 
       <Settings
         isOpen={showSettings}

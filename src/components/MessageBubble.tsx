@@ -18,7 +18,6 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
   const isUser = message.role === 'user';
   const isWelcome = message.type === 'welcome';
   const [organicOffset] = useState(getOrganicOffset());
-  const [isSettling, setIsSettling] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
   const [editContent, setEditContent] = useState(message.content);
 
@@ -26,10 +25,6 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
   const currentVersion = message.currentVersionIndex ?? 0;
   const hasMultipleVersions = versions.length > 1;
 
-  useEffect(() => {
-    const timer = setTimeout(() => setIsSettling(false), 500);
-    return () => clearTimeout(timer);
-  }, []);
 
   const formatTime = (timestamp: Date | number) => {
     const date = typeof timestamp === 'number' ? new Date(timestamp) : timestamp;
@@ -71,7 +66,7 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
   // Special rendering for welcome messages - lighter, no bubble, no timestamp
   if (isWelcome) {
     return (
-      <div className="flex justify-start mb-8 animate-fade-in">
+      <div className="flex justify-start mb-8 animate-fade-in-simple">
         <div className="max-w-[85%]">
           <p className="text-slate-300/90 text-[17px] leading-relaxed font-light tracking-wide">
             {message.content}
@@ -89,9 +84,8 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
       <div
         className={`max-w-[80%] ${isUser
           ? 'bg-mindpex-dark-warm border-l-4 border-amber'
-          : 'bg-mindpex-dark-gray-light border border-slate-700/50 message-glow breathing-presence'
-          } rounded-2xl md:rounded-lg px-4 py-3 shadow-lg group relative hover-organic ${isSettling ? 'message-settle' : ''
-          }`}
+          : 'bg-mindpex-dark-gray-light border border-slate-700/50'
+          } rounded-2xl md:rounded-lg px-4 py-3 shadow-lg group relative hover-organic`}
       >
         {isEditing ? (
           <div className="w-full min-w-[200px]">
@@ -213,6 +207,6 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
           <div className="absolute -inset-0.5 bg-gradient-to-r from-mindpex-gold/0 via-mindpex-gold/5 to-mindpex-gold/0 rounded-lg blur opacity-0 group-hover:opacity-100 transition-opacity -z-10" />
         )}
       </div>
-    </div>
+    </div >
   );
 };

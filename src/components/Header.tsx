@@ -71,12 +71,13 @@ export const Header: React.FC<HeaderProps> = ({
 
           <button
             onClick={onClearChat}
-            className="hidden md:block px-4 py-2 text-sm font-medium text-slate-300 hover:text-amber
+            className="hidden md:flex items-center gap-2 px-4 py-2 text-sm font-medium text-slate-300 hover:text-amber
                        border border-slate-600 hover:border-amber/50
                        rounded-lg transition-colors duration-200 btn-warm-glow"
-            aria-label="Clear conversation"
+            aria-label="Start fresh"
           >
-            Clear Chat
+            <span className="text-lg leading-none">↺</span>
+            Start Fresh
           </button>
         </div>
       </div>

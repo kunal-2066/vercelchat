@@ -18,7 +18,7 @@ export const FirstOpenIntro: React.FC<FirstOpenIntroProps> = ({ onComplete }) =>
   React.useEffect(() => {
     const timer = setTimeout(() => {
       setTransitionState('active');
-    }, 280); // Match fade-in-rise duration
+    }, 230); // Match fade-in-rise duration
     return () => clearTimeout(timer);
   }, []);
 
@@ -38,15 +38,15 @@ export const FirstOpenIntro: React.FC<FirstOpenIntroProps> = ({ onComplete }) =>
           // 4. Wait for enter duration, then set active
           setTimeout(() => {
             setTransitionState('active');
-          }, 280);
-        }, 180); // Pause duration
+          }, 230);
+        }, 120); // Reduced pause duration
       } else {
         // Final step: Move to next phase
         // Wait for exit animation to finish before notifying parent
         localStorage.setItem(INTRO_COMPLETED_KEY, 'true');
         onComplete();
       }
-    }, 240); // Match fade-out duration
+    }, 230); // Match fade-out duration
   };
 
   const getAnimationClass = () => {
@@ -63,8 +63,8 @@ export const FirstOpenIntro: React.FC<FirstOpenIntroProps> = ({ onComplete }) =>
   };
 
   return (
-    <div className="fixed inset-0 z-[60] flex items-center justify-center pointer-events-none">
-      <div className="relative z-10 w-full max-w-lg mx-4 pointer-events-auto">
+    <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/40 backdrop-blur-sm px-4">
+      <div className="relative z-10 w-full max-w-lg">
         <div className={`
           bg-mindpex-dark-warm/90 border border-amber/20 rounded-2xl p-8 shadow-2xl backdrop-blur-md
           ${getAnimationClass()}
@@ -76,7 +76,8 @@ export const FirstOpenIntro: React.FC<FirstOpenIntroProps> = ({ onComplete }) =>
                 Before you start — just a quick note
               </p>
               <p className="text-slate-300 text-base leading-relaxed mb-4">
-                I’m here with you whenever you need me, so you don’t have to keep carrying everything quietly while work and life keep moving.
+                This space is here whenever you need to think something through,
+                so you don’t have to carry it quietly while work keeps moving.
               </p>
               <p className="text-slate-300 text-base leading-relaxed mb-4">
                 There are no right answers, and no single response defines anything about you.
@@ -88,7 +89,10 @@ export const FirstOpenIntro: React.FC<FirstOpenIntroProps> = ({ onComplete }) =>
               <div className="flex justify-end mt-10">
                 <button
                   onClick={handleNext}
-                  className="px-6 py-2.5 text-sm font-semibold text-white bg-amber hover:bg-amber-glow rounded-lg transition-colors duration-200 shadow-lg shadow-amber/30"
+                  className="px-6 py-2.5 text-sm font-semibold rounded-lg
+                             transition-all duration-200 border
+                             text-slate-400 bg-slate-800/40 border-slate-700/50
+                             hover:text-white hover:bg-amber hover:border-amber hover:shadow-lg hover:shadow-amber/20"
                 >
                   Continue
                 </button>
@@ -102,19 +106,22 @@ export const FirstOpenIntro: React.FC<FirstOpenIntroProps> = ({ onComplete }) =>
                 <h3 className="text-white text-base font-bold mb-6">How Mindpex fits into your day</h3>
                 <div className="space-y-3">
                   <p className="text-slate-300 text-base leading-relaxed mb-4">
-                    Mindpex is something you use briefly — a moment to respond, then move on.
+                    Mindpex is something you use briefly — a moment to think something through, then move on.
                   </p>
                   <p className="text-slate-300 text-base leading-relaxed mb-4">
-                    It’s meant to stay in the background, not take your attention.
+                    You’ll usually open it after a meeting, a conversation,
+                    or when something at work doesn’t quite sit right.
                   </p>
                   <p className="text-slate-300 text-base leading-relaxed mb-4">
-                    Nothing here is about one response.
+                    There’s no need for long explanations.
+                    Just respond naturally and continue with your day.
                   </p>
                   <p className="text-slate-300 text-base leading-relaxed mb-4">
-                    What matters is how things feel over time, not any single moment.
+                    It’s designed to stay in the background,
                   </p>
                   <p className="text-slate-300 text-base leading-relaxed mb-4">
-                    There’s no scoring, no evaluation, and nothing you say here needs to be “right.”
+                    ready when you need a moment of clarity.
+
                   </p>
                 </div>
               </div>
@@ -122,7 +129,10 @@ export const FirstOpenIntro: React.FC<FirstOpenIntroProps> = ({ onComplete }) =>
               <div className="flex justify-end mt-10">
                 <button
                   onClick={handleNext}
-                  className="px-5 py-2 text-sm font-semibold text-white bg-amber/80 hover:bg-amber rounded-lg transition-colors duration-200 shadow-lg shadow-amber/20"
+                  className="px-6 py-2.5 text-sm font-semibold rounded-lg
+                             transition-all duration-200 border
+                             text-slate-400 bg-slate-800/40 border-slate-700/50
+                             hover:text-white hover:bg-amber hover:border-amber hover:shadow-lg hover:shadow-amber/20"
                 >
                   Continue
                 </button>
@@ -150,7 +160,10 @@ export const FirstOpenIntro: React.FC<FirstOpenIntroProps> = ({ onComplete }) =>
               <div className="flex justify-end mt-10">
                 <button
                   onClick={handleNext}
-                  className="px-5 py-2 text-sm font-semibold text-white bg-amber/70 hover:bg-amber rounded-lg transition-colors duration-200 shadow-lg shadow-amber/20"
+                  className="px-6 py-2.5 text-sm font-semibold rounded-lg
+                             transition-all duration-200 border
+                             text-slate-400 bg-slate-800/40 border-slate-700/50
+                             hover:text-white hover:bg-amber hover:border-amber hover:shadow-lg hover:shadow-amber/20"
                 >
                   Continue
                 </button>

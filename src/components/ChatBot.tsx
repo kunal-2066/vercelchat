@@ -10,6 +10,7 @@ import { Settings } from './Settings';
 import { exportConversation } from '../utils/storage';
 import { AmbientSound, getSanctuaryBackground } from '../utils/sanctuary';
 import { MoodChips } from './MoodChips';
+import { EmptyStatePrompt } from './EmptyStatePrompt';
 
 interface ChatBotProps {
   username: string | null;
@@ -56,8 +57,51 @@ export const ChatBot: React.FC<ChatBotProps> = ({ username }) => {
   const [showSettings, setShowSettings] = useState(false);
   const [isResetting, setIsResetting] = useState(false);
   const [message, setMessage] = useState('');
+  const [showPrompt, setShowPrompt] = useState(false);
+  const idleTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   const displayName = username || '';
+
+  const checkIsFirstTimeUser = () => {
+    return !localStorage.getItem('mindpex_has_chatted');
+  };
+
+  const markHasChatted = () => {
+    localStorage.setItem('mindpex_has_chatted', 'true');
+  };
+
+  const resetIdleTimer = () => {
+    if (idleTimerRef.current) {
+      clearTimeout(idleTimerRef.current);
+    }
+    if (messages.length === 0 && !checkIsFirstTimeUser()) {
+      setShowPrompt(false);
+      idleTimerRef.current = setTimeout(() => {
+        setShowPrompt(true);
+      }, 4000);
+    }
+  };
+
+  useEffect(() => {
+    if (messages.length === 0) {
+      if (checkIsFirstTimeUser()) {
+        setShowPrompt(true);
+      } else {
+        resetIdleTimer();
+      }
+    } else {
+      setShowPrompt(false);
+    }
+    return () => {
+      if (idleTimerRef.current) clearTimeout(idleTimerRef.current);
+    };
+  }, [messages.length]);
+
+  useEffect(() => {
+    if (messages.length === 0 && !checkIsFirstTimeUser()) {
+      resetIdleTimer();
+    }
+  }, [message]);
 
   useEffect(() => {
     return () => {
@@ -99,11 +143,13 @@ export const ChatBot: React.FC<ChatBotProps> = ({ username }) => {
     }
   };
 
-  const handleSendMessage = (message: string) => {
-    sendMessage(message);
+  const handleSendMessage = (msg: string) => {
+    markHasChatted();
+    sendMessage(msg);
   };
 
   const handleMoodSelect = (mood: string) => {
+    markHasChatted();
     setMessage(mood);
   };
 
@@ -131,11 +177,15 @@ export const ChatBot: React.FC<ChatBotProps> = ({ username }) => {
 
       <div
         ref={messagesContainerRef}
+        onScroll={resetIdleTimer}
         className={`flex-1 overflow-y-auto px-2 md:px-4 py-4 md:py-6 pt-20 md:pt-6 relative z-10 transition-opacity duration-150 ${isResetting ? 'opacity-0 animate-fade-out-fast' : 'opacity-100'}`}
       >
         <div className={`max-w-4xl mx-auto sanctuary-glow ${!isResetting ? 'animate-fade-in-simple' : ''}`}>
           {messages.length === 0 && !streamingMessage && (
-            <MoodChips onSelect={handleMoodSelect} />
+            <div className="flex flex-col items-center pt-8">
+              {showPrompt && <EmptyStatePrompt />}
+              <MoodChips onSelect={handleMoodSelect} />
+            </div>
           )}
 
           {messages.map((message, index) => {

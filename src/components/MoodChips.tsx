@@ -52,6 +52,9 @@ export const MoodChips: React.FC<MoodChipsProps> = ({ onSelect }) => {
                     />
                 ))}
             </div>
+            <p className="text-[13px] text-white/55 text-center mt-[18px] mb-[10px]">
+                Take a moment — let's sort through what happened.
+            </p>
         </div>
     );
 };

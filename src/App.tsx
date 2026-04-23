@@ -7,11 +7,14 @@ import { UsernameEntry, getStoredUsername } from './components/UsernameEntry';
 type AppPhase = 'loading' | 'intro' | 'username' | 'chat';
 
 function App() {
-  const [phase, setPhase] = useState<AppPhase>('loading');
-  const [showLoading, setShowLoading] = useState(true);
+  const isEisRoute = window.location.pathname === '/eis';
+  const [phase, setPhase] = useState<AppPhase>(isEisRoute ? 'chat' : 'loading');
+  const [showLoading, setShowLoading] = useState(!isEisRoute);
   const [username, setUsername] = useState<string | null>(null);
 
   useEffect(() => {
+    if (isEisRoute) return;
+
     // Loading screen for 2.5 seconds
     const timer = setTimeout(() => {
       setShowLoading(false);

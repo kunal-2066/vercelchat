@@ -149,6 +149,23 @@ html {
   animation: logoGlow 1.4s ease-out 0.2s forwards;
 }
 
+/* Empty State Fade In animation for EmptyStatePrompt component*/
+@keyframes emptyStateFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-empty-state {
+  animation: emptyStateFadeIn 0.28s ease-out forwards;
+}
+
 @keyframes logoReveal {
   0% {
     opacity: 0;

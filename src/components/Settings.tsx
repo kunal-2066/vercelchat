@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { getStoredUsername } from './UsernameEntry';
+import { usePWAInstall } from '../hooks/usePWAInstall';
 
 interface SettingsProps {
   isOpen: boolean;
@@ -18,6 +19,7 @@ interface UserSettings {
 export const Settings: React.FC<SettingsProps> = ({ isOpen, onClose, onSignOut, onClearChat }) => {
   const [nickname, setNickname] = useState('');
   const [saving, setSaving] = useState(false);
+  const { isInstallable, promptInstall } = usePWAInstall();
 
   useEffect(() => {
     if (isOpen) {
@@ -125,12 +127,13 @@ export const Settings: React.FC<SettingsProps> = ({ isOpen, onClose, onSignOut, 
             <button
               onClick={handleSave}
               disabled={saving}
-              className="w-full mt-2 px-6 py-3 rounded-xl
-                       bg-gradient-to-r from-amber to-amber-glow
-                       text-mindpex-dark font-semibold text-lg
-                       hover:opacity-90 transition-opacity
-                       shadow-lg shadow-amber/20
-                       disabled:opacity-50"
+              className="w-full mt-2 py-3 rounded-xl
+                         backdrop-blur-md bg-amber/20
+                         border border-amber/40
+                         text-amber-glow font-semibold text-lg
+                         hover:bg-amber/30 hover:border-amber/60
+                         disabled:opacity-40 disabled:cursor-not-allowed
+                         transition-all flex items-center justify-center"
             >
               {saving ? 'Saving...' : 'Save'}
             </button>
@@ -148,6 +151,18 @@ export const Settings: React.FC<SettingsProps> = ({ isOpen, onClose, onSignOut, 
                 <span className="text-lg leading-none">↺</span>
                 Start Fresh
               </button>
+
+              {isInstallable && (
+                <button
+                  onClick={promptInstall}
+                  className="w-full px-4 py-2.5 rounded-lg text-left text-sm font-medium 
+                           text-indigo-400 hover:text-indigo-300 hover:bg-slate-700/50 
+                           transition-colors flex items-center gap-3"
+                >
+                  <span className="text-lg leading-none">↓</span>
+                  Install Mindpex
+                </button>
+              )}
 
               <button
                 onClick={handleSignOutClick}

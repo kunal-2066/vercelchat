@@ -62,46 +62,25 @@ export const ChatBot: React.FC<ChatBotProps> = ({ username }) => {
 
   const displayName = username || '';
 
-  const checkIsFirstTimeUser = () => {
-    return !localStorage.getItem('mindpex_has_chatted');
-  };
-
-  const markHasChatted = () => {
-    localStorage.setItem('mindpex_has_chatted', 'true');
-  };
-
   const resetIdleTimer = () => {
     if (idleTimerRef.current) {
       clearTimeout(idleTimerRef.current);
     }
-    if (messages.length === 0 && !checkIsFirstTimeUser()) {
-      setShowPrompt(false);
+    setShowPrompt(false);
+
+    if (messages.length === 0 && message.trim() === '') {
       idleTimerRef.current = setTimeout(() => {
         setShowPrompt(true);
-      }, 4000);
+      }, 4500);
     }
   };
 
   useEffect(() => {
-    if (messages.length === 0) {
-      if (checkIsFirstTimeUser()) {
-        setShowPrompt(true);
-      } else {
-        resetIdleTimer();
-      }
-    } else {
-      setShowPrompt(false);
-    }
+    resetIdleTimer();
     return () => {
       if (idleTimerRef.current) clearTimeout(idleTimerRef.current);
     };
-  }, [messages.length]);
-
-  useEffect(() => {
-    if (messages.length === 0 && !checkIsFirstTimeUser()) {
-      resetIdleTimer();
-    }
-  }, [message]);
+  }, [messages.length, message]);
 
   useEffect(() => {
     return () => {
@@ -144,12 +123,10 @@ export const ChatBot: React.FC<ChatBotProps> = ({ username }) => {
   };
 
   const handleSendMessage = (msg: string) => {
-    markHasChatted();
     sendMessage(msg);
   };
 
   const handleMoodSelect = (mood: string) => {
-    markHasChatted();
     setMessage(mood);
   };
 
@@ -184,7 +161,7 @@ export const ChatBot: React.FC<ChatBotProps> = ({ username }) => {
           {messages.length === 0 && !streamingMessage && (
             <div className="flex flex-col items-center pt-8">
               {showPrompt && <EmptyStatePrompt />}
-              <MoodChips onSelect={handleMoodSelect} />
+              <MoodChips onSelect={handleMoodSelect} showGuidedLine={showPrompt} />
             </div>
           )}
 

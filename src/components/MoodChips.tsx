@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 
 interface MoodChipsProps {
     onSelect: (mood: string) => void;
+    showGuidedLine?: boolean;
 }
 
 const chipPool = [
@@ -22,7 +23,7 @@ const chipPool = [
     "All good"
 ];
 
-export const MoodChips: React.FC<MoodChipsProps> = ({ onSelect }) => {
+export const MoodChips: React.FC<MoodChipsProps> = ({ onSelect, showGuidedLine = true }) => {
     const [isVisible, setIsVisible] = useState(false);
     const [randomChips, setRandomChips] = useState<string[]>([]);
 
@@ -52,9 +53,15 @@ export const MoodChips: React.FC<MoodChipsProps> = ({ onSelect }) => {
                     />
                 ))}
             </div>
-            <p className="text-[13px] text-white/55 text-center mt-[18px] mb-[10px]">
-                Take a moment — let's sort through what happened.
-            </p>
+            <div className={`overflow-hidden transition-all text-center
+                ${showGuidedLine 
+                    ? 'duration-300 ease-out max-h-[50px] opacity-100 translate-y-0 mt-[18px] mb-[10px]' 
+                    : 'duration-200 ease-in-out max-h-0 opacity-0 translate-y-2 mt-0 mb-0'}`}
+            >
+                <p className="text-[13px] text-white/55">
+                    Take a moment — let's sort through what happened.
+                </p>
+            </div>
         </div>
     );
 };
